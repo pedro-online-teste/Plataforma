@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard Avançado de Campanhas</title>
+  <title>Dashboard de Campanhas - Controle Financeiro</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script>
@@ -105,6 +105,15 @@
       background-color: #e5e7eb;
     }
     
+    .btn-danger {
+      background-color: #ef4444;
+      color: white;
+    }
+    
+    .btn-danger:hover {
+      background-color: #dc2626;
+    }
+    
     .error {
       color: #ef4444;
       font-size: 0.875rem;
@@ -141,44 +150,114 @@
       background-color: #f9fafb;
     }
     
-    .period-selector {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
-    }
-    
-    .period-btn {
-      flex: 1;
-      text-align: center;
-      padding: 0.5rem;
-      border-radius: 0.375rem;
-      background-color: #f3f4f6;
-      cursor: pointer;
-      transition: all 0.15s ease;
-    }
-    
-    .period-btn.active {
-      background-color: #3b82f6;
-      color: white;
-    }
-    
-    .campaign-selector {
-      margin-bottom: 1rem;
-    }
-    
-    .campaign-selector select {
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
       width: 100%;
-      padding: 0.5rem;
-      border-radius: 0.375rem;
-      border: 1px solid #d1d5db;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .modal-content {
+      background: white;
+      border-radius: 0.5rem;
+      width: 90%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    
+    .modal-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .modal-body {
+      padding: 1.5rem;
+    }
+    
+    .modal-footer {
+      padding: 1.5rem;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+    }
+    
+    .daily-returns-table {
+      max-height: 300px;
+      overflow-y: auto;
+      margin-top: 1rem;
+    }
+    
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    
+    .summary-card {
+      background-color: #f9fafb;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      text-align: center;
+    }
+    
+    .progress-bar {
+      height: 8px;
+      background-color: #e5e7eb;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 0.5rem;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background-color: #10b981;
+    }
+    
+    .loss-fill {
+      background-color: #ef4444;
+    }
+    
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid #e5e7eb;
+      margin-bottom: 1rem;
+    }
+    
+    .tab {
+      padding: 0.75rem 1.5rem;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+    }
+    
+    .tab.active {
+      border-bottom: 2px solid #3b82f6;
+      color: #3b82f6;
+      font-weight: 500;
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
     }
   </style>
 </head>
 <body class="bg-gray-50 min-h-screen p-4 md:p-8">
   <div class="max-w-7xl mx-auto">
     <header class="mb-8">
-      <h1 class="text-3xl font-bold text-gray-900">Dashboard Avançado de Campanhas</h1>
-      <p class="text-gray-600">Acompanhe e analise a rentabilidade das suas campanhas por período</p>
+      <h1 class="text-3xl font-bold text-gray-900">Dashboard de Campanhas Financeiras</h1>
+      <p class="text-gray-600">Controle completo de investimentos e retornos diários</p>
     </header>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -186,8 +265,8 @@
       <div class="lg:col-span-1">
         <div class="card p-6">
           <div class="mb-5">
-            <h2 class="text-xl font-bold text-gray-900">Adicionar Nova Campanha</h2>
-            <p class="text-gray-600">Insira os dados da campanha para calcular a performance</p>
+            <h2 class="text-xl font-bold text-gray-900">Nova Campanha</h2>
+            <p class="text-gray-600">Registre sua campanha com investimento inicial</p>
           </div>
           
           <div class="space-y-4">
@@ -197,16 +276,16 @@
                 type="text" 
                 id="campaignName" 
                 class="form-input" 
-                placeholder="Venda de Verão 2023"
+                placeholder="Campanha de Verão"
               >
               <div id="nameError" class="error hidden"></div>
             </div>
             
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Investimento (R$)</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Investimento Inicial (R$)</label>
               <input 
                 type="number" 
-                id="investment" 
+                id="initialInvestment" 
                 class="form-input" 
                 placeholder="1000"
                 min="0" 
@@ -216,42 +295,17 @@
             </div>
             
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Retorno (R$)</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Data de Início</label>
               <input 
-                type="number" 
-                id="return" 
-                class="form-input" 
-                placeholder="2500"
-                min="0" 
-                step="0.01"
+                type="date" 
+                id="startDate" 
+                class="form-input"
               >
-              <div id="returnError" class="error hidden"></div>
-            </div>
-            
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Cliques</label>
-              <input 
-                type="number" 
-                id="clicks" 
-                class="form-input" 
-                placeholder="5000"
-                min="1"
-              >
-              <div id="clicksError" class="error hidden"></div>
-            </div>
-            
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Período</label>
-              <select id="period" class="form-input">
-                <option value="daily">Diário</option>
-                <option value="weekly">Semanal</option>
-                <option value="monthly">Mensal</option>
-                <option value="yearly">Anual</option>
-              </select>
+              <div id="dateError" class="error hidden"></div>
             </div>
             
             <button id="addCampaignBtn" class="btn btn-primary w-full mt-4">
-              <i class="fas fa-plus mr-2"></i> Adicionar Campanha
+              <i class="fas fa-plus mr-2"></i> Criar Campanha
             </button>
           </div>
         </div>
@@ -259,33 +313,11 @@
 
       <!-- Métricas e Rankings -->
       <div class="lg:col-span-2 space-y-6">
-        <!-- Seletores -->
-        <div class="card p-6">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="campaign-selector">
-              <label class="block text-sm font-medium text-gray-700 mb-1">Filtrar por Campanha</label>
-              <select id="campaignFilter" class="form-input">
-                <option value="all">Todas as Campanhas</option>
-              </select>
-            </div>
-            
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Período de Visualização</label>
-              <div class="period-selector">
-                <div class="period-btn active" data-period="daily">Diário</div>
-                <div class="period-btn" data-period="weekly">Semanal</div>
-                <div class="period-btn" data-period="monthly">Mensal</div>
-                <div class="period-btn" data-period="yearly">Anual</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <!-- Métricas de Performance -->
         <div class="card">
           <div class="p-6 border-b border-gray-200">
-            <h2 class="text-xl font-bold text-gray-900">Métricas de Performance</h2>
-            <p class="text-gray-600">Indicadores principais de rentabilidade por período</p>
+            <h2 class="text-xl font-bold text-gray-900">Resumo Financeiro</h2>
+            <p class="text-gray-600">Visão geral de todas as campanhas</p>
           </div>
           <div class="p-6">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -315,15 +347,15 @@
         <!-- Rankings -->
         <div class="card">
           <div class="p-6 border-b border-gray-200">
-            <h2 class="text-xl font-bold text-gray-900">Campanhas Mais Rentáveis</h2>
-            <p class="text-gray-600">Classificadas pelo lucro (maiores primeiro)</p>
+            <h2 class="text-xl font-bold text-gray-900">Ranking de Campanhas</h2>
+            <p class="text-gray-600">Classificadas pelo lucro total</p>
           </div>
           <div class="p-6">
             <div id="rankingsContainer">
               <div class="text-center py-8 text-gray-500">
-                <i class="fas fa-chart-line text-5xl mb-4 opacity-50"></i>
-                <p class="mt-2">Nenhuma campanha adicionada ainda</p>
-                <p class="text-sm">Adicione sua primeira campanha para ver os rankings</p>
+                <i class="fas fa-trophy text-5xl mb-4 opacity-50"></i>
+                <p class="mt-2">Nenhuma campanha registrada</p>
+                <p class="text-sm">Crie sua primeira campanha para ver o ranking</p>
               </div>
             </div>
           </div>
@@ -333,7 +365,7 @@
         <div class="card">
           <div class="p-6 border-b border-gray-200">
             <h2 class="text-xl font-bold text-gray-900">Todas as Campanhas</h2>
-            <p class="text-gray-600">Métricas de performance detalhadas</p>
+            <p class="text-gray-600">Gerencie seus investimentos e retornos</p>
           </div>
           <div class="p-6">
             <div id="campaignsTableContainer" class="table-container">
@@ -341,20 +373,21 @@
                 <thead>
                   <tr>
                     <th>Campanha</th>
-                    <th>Período</th>
-                    <th class="text-right">Investimento</th>
-                    <th class="text-right">Retorno</th>
+                    <th>Início</th>
+                    <th class="text-right">Investido</th>
+                    <th class="text-right">Retornado</th>
                     <th class="text-right">Lucro</th>
                     <th class="text-right">ROI</th>
-                    <th class="text-right">CPC</th>
+                    <th>Dias</th>
+                    <th>Ações</th>
                   </tr>
                 </thead>
                 <tbody id="campaignsTableBody">
                   <tr>
-                    <td colspan="7" class="text-center py-8 text-gray-500">
-                      <i class="fas fa-chart-bar text-5xl mb-4 opacity-50"></i>
-                      <p class="mt-2">Nenhuma campanha no sistema</p>
-                      <p class="text-sm">Adicione campanhas usando o formulário para ver métricas detalhadas</p>
+                    <td colspan="8" class="text-center py-8 text-gray-500">
+                      <i class="fas fa-chart-line text-5xl mb-4 opacity-50"></i>
+                      <p class="mt-2">Nenhuma campanha cadastrada</p>
+                      <p class="text-sm">Crie sua primeira campanha para começar</p>
                     </td>
                   </tr>
                 </tbody>
@@ -366,18 +399,123 @@
     </div>
   </div>
 
+  <!-- Modal para Gerenciar Retornos -->
+  <div id="returnsModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="text-xl font-bold">Gerenciar Retornos</h3>
+        <p id="modalCampaignName" class="text-gray-600 mt-1"></p>
+      </div>
+      <div class="modal-body">
+        <!-- Tabs -->
+        <div class="tabs">
+          <div class="tab active" data-tab="add">Adicionar Retorno</div>
+          <div class="tab" data-tab="history">Histórico</div>
+        </div>
+        
+        <!-- Adicionar Retorno -->
+        <div class="tab-content active" id="addTab">
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Data</label>
+            <input 
+              type="date" 
+              id="returnDate" 
+              class="form-input"
+            >
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Retorno (R$)</label>
+              <input 
+                type="number" 
+                id="returnValue" 
+                class="form-input" 
+                placeholder="200"
+                min="0" 
+                step="0.01"
+              >
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Investimento Adicional (R$)</label>
+              <input 
+                type="number" 
+                id="additionalInvestment" 
+                class="form-input" 
+                placeholder="0"
+                min="0" 
+                step="0.01"
+                value="0"
+              >
+            </div>
+          </div>
+          
+          <button id="addReturnBtn" class="btn btn-primary w-full">
+            <i class="fas fa-plus mr-2"></i> Registrar Retorno
+          </button>
+          
+          <!-- Resumo -->
+          <div class="summary-grid mt-6">
+            <div class="summary-card">
+              <p class="text-sm text-gray-600">Total Investido</p>
+              <p id="modalTotalInvestment" class="text-xl font-bold text-blue-600">R$ 0,00</p>
+            </div>
+            <div class="summary-card">
+              <p class="text-sm text-gray-600">Total Retornado</p>
+              <p id="modalTotalReturn" class="text-xl font-bold text-green-600">R$ 0,00</p>
+            </div>
+            <div class="summary-card">
+              <p class="text-sm text-gray-600">Lucro Atual</p>
+              <p id="modalCurrentProfit" class="text-xl font-bold text-purple-600">R$ 0,00</p>
+            </div>
+            <div class="summary-card">
+              <p class="text-sm text-gray-600">ROI Atual</p>
+              <p id="modalCurrentRoi" class="text-xl font-bold text-amber-600">0,00%</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Histórico de Retornos -->
+        <div class="tab-content" id="historyTab">
+          <div class="daily-returns-table">
+            <table class="w-full">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th class="text-right">Retorno</th>
+                  <th class="text-right">Investimento</th>
+                  <th class="text-right">Lucro Dia</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="returnsTableBody">
+                <tr>
+                  <td colspan="5" class="text-center text-gray-500 py-4">
+                    Nenhum retorno registrado
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="closeModalBtn" class="btn btn-secondary">Fechar</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // Estado da aplicação
     let campaigns = [];
-    let currentPeriod = 'daily';
-    let selectedCampaign = 'all';
+    let currentCampaignId = null;
     
     // Carregar campanhas do localStorage
     function loadCampaigns() {
       const savedCampaigns = localStorage.getItem('campaigns');
       if (savedCampaigns) {
         campaigns = JSON.parse(savedCampaigns);
-        updateCampaignFilter();
         updateDashboard();
       }
     }
@@ -387,29 +525,12 @@
       localStorage.setItem('campaigns', JSON.stringify(campaigns));
     }
     
-    // Atualizar filtro de campanhas
-    function updateCampaignFilter() {
-      const campaignFilter = document.getElementById('campaignFilter');
-      campaignFilter.innerHTML = '<option value="all">Todas as Campanhas</option>';
-      
-      const uniqueCampaigns = [...new Set(campaigns.map(c => c.name))];
-      uniqueCampaigns.forEach(campaign => {
-        const option = document.createElement('option');
-        option.value = campaign;
-        option.textContent = campaign;
-        campaignFilter.appendChild(option);
-      });
-      
-      campaignFilter.value = selectedCampaign;
-    }
-    
-    // Validar formulário
-    function validateForm() {
+    // Validar formulário de campanha
+    function validateCampaignForm() {
       let isValid = true;
       const name = document.getElementById('campaignName').value.trim();
-      const investment = parseFloat(document.getElementById('investment').value);
-      const returnAmount = parseFloat(document.getElementById('return').value);
-      const clicks = parseInt(document.getElementById('clicks').value);
+      const investment = parseFloat(document.getElementById('initialInvestment').value);
+      const startDate = document.getElementById('startDate').value;
       
       // Limpar erros anteriores
       document.querySelectorAll('.error').forEach(el => el.classList.add('hidden'));
@@ -428,17 +549,10 @@
         isValid = false;
       }
       
-      // Validar retorno
-      if (isNaN(returnAmount) || returnAmount < 0) {
-        document.getElementById('returnError').textContent = 'Retorno deve ser um número válido';
-        document.getElementById('returnError').classList.remove('hidden');
-        isValid = false;
-      }
-      
-      // Validar cliques
-      if (isNaN(clicks) || clicks <= 0) {
-        document.getElementById('clicksError').textContent = 'Cliques deve ser um número positivo';
-        document.getElementById('clicksError').classList.remove('hidden');
+      // Validar data
+      if (!startDate) {
+        document.getElementById('dateError').textContent = 'Data de início é obrigatória';
+        document.getElementById('dateError').classList.remove('hidden');
         isValid = false;
       }
       
@@ -447,70 +561,37 @@
     
     // Adicionar nova campanha
     function addCampaign() {
-      if (!validateForm()) return;
+      if (!validateCampaignForm()) return;
       
       const name = document.getElementById('campaignName').value.trim();
-      const investment = parseFloat(document.getElementById('investment').value);
-      const returnAmount = parseFloat(document.getElementById('return').value);
-      const clicks = parseInt(document.getElementById('clicks').value);
-      const period = document.getElementById('period').value;
-      
-      // Calcular valores baseados no período
-      let dailyInvestment, dailyReturn, dailyClicks;
-      
-      switch(period) {
-        case 'daily':
-          dailyInvestment = investment;
-          dailyReturn = returnAmount;
-          dailyClicks = clicks;
-          break;
-        case 'weekly':
-          dailyInvestment = investment / 7;
-          dailyReturn = returnAmount / 7;
-          dailyClicks = clicks / 7;
-          break;
-        case 'monthly':
-          dailyInvestment = investment / 30;
-          dailyReturn = returnAmount / 30;
-          dailyClicks = clicks / 30;
-          break;
-        case 'yearly':
-          dailyInvestment = investment / 365;
-          dailyReturn = returnAmount / 365;
-          dailyClicks = clicks / 365;
-          break;
-      }
-      
-      const dailyProfit = dailyReturn - dailyInvestment;
-      const roi = dailyInvestment > 0 ? (dailyProfit / dailyInvestment) * 100 : 0;
-      const costPerClick = dailyClicks > 0 ? dailyInvestment / dailyClicks : 0;
+      const initialInvestment = parseFloat(document.getElementById('initialInvestment').value);
+      const startDate = document.getElementById('startDate').value;
       
       const campaign = {
         id: Date.now().toString(),
         name: name,
-        period: period,
-        investment: dailyInvestment,
-        return: dailyReturn,
-        clicks: dailyClicks,
-        dailyProfit: dailyProfit,
-        weeklyProfit: dailyProfit * 7,
-        monthlyProfit: dailyProfit * 30,
-        yearlyProfit: dailyProfit * 365,
-        roi: roi,
-        costPerClick: costPerClick
+        startDate: startDate,
+        initialInvestment: initialInvestment,
+        totalInvestment: initialInvestment,
+        totalReturn: 0,
+        dailyReturns: [],
+        createdAt: new Date().toISOString()
       };
+      
+      // Calcular lucro e ROI iniciais
+      campaign.totalProfit = campaign.totalReturn - campaign.totalInvestment;
+      campaign.roi = campaign.totalInvestment > 0 
+        ? (campaign.totalProfit / campaign.totalInvestment) * 100 
+        : (campaign.totalProfit > 0 ? Infinity : -Infinity);
       
       campaigns.push(campaign);
       saveCampaigns();
-      updateCampaignFilter();
       updateDashboard();
       
       // Limpar formulário
       document.getElementById('campaignName').value = '';
-      document.getElementById('investment').value = '';
-      document.getElementById('return').value = '';
-      document.getElementById('clicks').value = '';
-      document.getElementById('period').value = 'daily';
+      document.getElementById('initialInvestment').value = '';
+      document.getElementById('startDate').value = new Date().toISOString().split('T')[0];
     }
     
     // Formatar moeda
@@ -523,39 +604,176 @@
     
     // Formatar porcentagem
     function formatPercentage(value) {
+      if (!isFinite(value)) return 'N/A';
       return value.toFixed(2) + '%';
     }
     
-    // Obter valor baseado no período atual
-    function getValueByPeriod(campaign, valueType) {
-      switch(currentPeriod) {
-        case 'daily':
-          return campaign[valueType];
-        case 'weekly':
-          return campaign[valueType] * 7;
-        case 'monthly':
-          return campaign[valueType] * 30;
-        case 'yearly':
-          return campaign[valueType] * 365;
-        default:
-          return campaign[valueType];
+    // Formatar data
+    function formatDate(dateString) {
+      const options = { day: '2-digit', month: '2-digit' };
+      return new Date(dateString).toLocaleDateString('pt-BR', options);
+    }
+    
+    // Abrir modal de retornos
+    function openReturnsModal(campaignId) {
+      const campaign = campaigns.find(c => c.id === campaignId);
+      if (!campaign) return;
+      
+      currentCampaignId = campaignId;
+      document.getElementById('modalCampaignName').textContent = campaign.name;
+      document.getElementById('returnDate').value = new Date().toISOString().split('T')[0];
+      document.getElementById('returnValue').value = '';
+      document.getElementById('additionalInvestment').value = '0';
+      
+      updateReturnsModal(campaign);
+      document.getElementById('returnsModal').style.display = 'flex';
+    }
+    
+    // Atualizar modal de retornos
+    function updateReturnsModal(campaign) {
+      // Atualizar resumo no modal
+      document.getElementById('modalTotalInvestment').textContent = formatCurrency(campaign.totalInvestment);
+      document.getElementById('modalTotalReturn').textContent = formatCurrency(campaign.totalReturn);
+      document.getElementById('modalCurrentProfit').textContent = formatCurrency(campaign.totalProfit);
+      document.getElementById('modalCurrentRoi').textContent = formatPercentage(campaign.roi);
+      
+      // Atualizar tabela de retornos
+      const returnsTableBody = document.getElementById('returnsTableBody');
+      if (campaign.dailyReturns.length > 0) {
+        let returnsHTML = '';
+        campaign.dailyReturns.forEach((ret, index) => {
+          const dailyProfit = ret.return - (ret.investment || 0);
+          const profitClass = dailyProfit >= 0 ? 'profit-positive' : 'profit-negative';
+          
+          returnsHTML += `
+            <tr>
+              <td>${formatDate(ret.date)}</td>
+              <td class="text-right">${formatCurrency(ret.return)}</td>
+              <td class="text-right">${formatCurrency(ret.investment || 0)}</td>
+              <td class="text-right ${profitClass} font-medium">
+                ${formatCurrency(dailyProfit)}
+              </td>
+              <td>
+                <button onclick="removeReturn('${campaign.id}', ${index})" class="text-red-500 hover:text-red-700">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </td>
+            </tr>
+          `;
+        });
+        returnsTableBody.innerHTML = returnsHTML;
+      } else {
+        returnsTableBody.innerHTML = `
+          <tr>
+            <td colspan="5" class="text-center text-gray-500 py-4">
+              Nenhum retorno registrado
+            </td>
+          </tr>
+        `;
       }
+    }
+    
+    // Adicionar retorno diário
+    function addDailyReturn() {
+      const campaign = campaigns.find(c => c.id === currentCampaignId);
+      if (!campaign) return;
+      
+      const date = document.getElementById('returnDate').value;
+      const returnValue = parseFloat(document.getElementById('returnValue').value);
+      const additionalInvestment = parseFloat(document.getElementById('additionalInvestment').value) || 0;
+      
+      if (!date || isNaN(returnValue) || returnValue < 0) {
+        alert('Por favor, preencha todos os campos corretamente');
+        return;
+      }
+      
+      // Verificar se já existe retorno para esta data
+      const existingReturnIndex = campaign.dailyReturns.findIndex(ret => ret.date === date);
+      
+      if (existingReturnIndex !== -1) {
+        // Atualizar retorno existente
+        const existingReturn = campaign.dailyReturns[existingReturnIndex];
+        campaign.totalReturn = campaign.totalReturn - existingReturn.return + returnValue;
+        campaign.totalInvestment = campaign.totalInvestment - (existingReturn.investment || 0) + additionalInvestment;
+        
+        campaign.dailyReturns[existingReturnIndex] = {
+          date: date,
+          return: returnValue,
+          investment: additionalInvestment
+        };
+      } else {
+        // Adicionar novo retorno
+        campaign.dailyReturns.push({
+          date: date,
+          return: returnValue,
+          investment: additionalInvestment
+        });
+        
+        // Atualizar totais
+        campaign.totalReturn += returnValue;
+        campaign.totalInvestment += additionalInvestment;
+      }
+      
+      // Recalcular lucro e ROI
+      campaign.totalProfit = campaign.totalReturn - campaign.totalInvestment;
+      campaign.roi = campaign.totalInvestment > 0 
+        ? (campaign.totalProfit / campaign.totalInvestment) * 100 
+        : (campaign.totalProfit > 0 ? Infinity : -Infinity);
+      
+      saveCampaigns();
+      updateDashboard();
+      updateReturnsModal(campaign);
+      
+      // Limpar campos
+      document.getElementById('returnValue').value = '';
+      document.getElementById('additionalInvestment').value = '0';
+    }
+    
+    // Remover retorno diário
+    function removeReturn(campaignId, index) {
+      const campaign = campaigns.find(c => c.id === campaignId);
+      if (!campaign) return;
+      
+      const removedReturn = campaign.dailyReturns.splice(index, 1)[0];
+      
+      // Atualizar totais
+      campaign.totalReturn -= removedReturn.return;
+      campaign.totalInvestment -= (removedReturn.investment || 0);
+      campaign.totalProfit = campaign.totalReturn - campaign.totalInvestment;
+      campaign.roi = campaign.totalInvestment > 0 
+        ? (campaign.totalProfit / campaign.totalInvestment) * 100 
+        : (campaign.totalProfit > 0 ? Infinity : -Infinity);
+      
+      saveCampaigns();
+      updateDashboard();
+      updateReturnsModal(campaign);
+    }
+    
+    // Fechar modal
+    function closeReturnsModal() {
+      document.getElementById('returnsModal').style.display = 'none';
+      currentCampaignId = null;
+    }
+    
+    // Alternar tabs no modal
+    function switchTab(tabName) {
+      // Remover classe active de todos os tabs e conteúdos
+      document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+      
+      // Adicionar classe active ao tab selecionado e seu conteúdo
+      document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add('active');
+      document.getElementById(`${tabName}Tab`).classList.add('active');
     }
     
     // Atualizar dashboard
     function updateDashboard() {
-      // Filtrar campanhas
-      let filteredCampaigns = campaigns;
-      if (selectedCampaign !== 'all') {
-        filteredCampaigns = campaigns.filter(c => c.name === selectedCampaign);
-      }
-      
       // Atualizar métricas totais
-      const totalInvestment = filteredCampaigns.reduce((sum, c) => sum + getValueByPeriod(c, 'investment'), 0);
-      const totalReturn = filteredCampaigns.reduce((sum, c) => sum + getValueByPeriod(c, 'return'), 0);
-      const totalProfit = filteredCampaigns.reduce((sum, c) => sum + getValueByPeriod(c, 'dailyProfit'), 0);
-      const avgRoi = filteredCampaigns.length > 0 
-        ? filteredCampaigns.reduce((sum, c) => sum + c.roi, 0) / filteredCampaigns.length 
+      const totalInvestment = campaigns.reduce((sum, c) => sum + c.totalInvestment, 0);
+      const totalReturn = campaigns.reduce((sum, c) => sum + c.totalReturn, 0);
+      const totalProfit = campaigns.reduce((sum, c) => sum + c.totalProfit, 0);
+      const avgRoi = campaigns.length > 0 
+        ? campaigns.reduce((sum, c) => sum + (isFinite(c.roi) ? c.roi : 0), 0) / campaigns.length 
         : 0;
       
       document.getElementById('totalInvestment').textContent = formatCurrency(totalInvestment);
@@ -564,9 +782,7 @@
       document.getElementById('avgRoi').textContent = formatPercentage(avgRoi);
       
       // Atualizar rankings
-      const sortedCampaigns = [...filteredCampaigns].sort((a, b) => 
-        getValueByPeriod(b, 'dailyProfit') - getValueByPeriod(a, 'dailyProfit')
-      );
+      const sortedCampaigns = [...campaigns].sort((a, b) => b.totalProfit - a.totalProfit);
       const topCampaigns = sortedCampaigns.slice(0, 5);
       
       const rankingsContainer = document.getElementById('rankingsContainer');
@@ -586,8 +802,7 @@
         `;
         
         topCampaigns.forEach((campaign, index) => {
-          const profitValue = getValueByPeriod(campaign, 'dailyProfit');
-          const profitClass = profitValue >= 0 ? 'profit-positive' : 'profit-negative';
+          const profitClass = campaign.totalProfit >= 0 ? 'profit-positive' : 'profit-negative';
           const roiClass = campaign.roi >= 0 ? 'profit-positive' : 'profit-negative';
           const rankClass = index === 0 ? 'rank-1' : 'rank-other';
           
@@ -600,7 +815,7 @@
               </td>
               <td class="font-medium">${campaign.name}</td>
               <td class="text-right ${profitClass} font-medium">
-                ${formatCurrency(profitValue)}
+                ${formatCurrency(campaign.totalProfit)}
               </td>
               <td class="text-right ${roiClass} font-medium">
                 ${formatPercentage(campaign.roi)}
@@ -619,47 +834,41 @@
       } else {
         rankingsContainer.innerHTML = `
           <div class="text-center py-8 text-gray-500">
-            <i class="fas fa-chart-line text-5xl mb-4 opacity-50"></i>
-            <p class="mt-2">Nenhuma campanha adicionada ainda</p>
-            <p class="text-sm">Adicione sua primeira campanha para ver os rankings</p>
+            <i class="fas fa-trophy text-5xl mb-4 opacity-50"></i>
+            <p class="mt-2">Nenhuma campanha registrada</p>
+            <p class="text-sm">Crie sua primeira campanha para ver o ranking</p>
           </div>
         `;
       }
       
       // Atualizar tabela de campanhas
       const campaignsTableBody = document.getElementById('campaignsTableBody');
-      if (filteredCampaigns.length > 0) {
+      if (campaigns.length > 0) {
         let tableHTML = '';
         
-        filteredCampaigns.forEach(campaign => {
-          const investmentValue = getValueByPeriod(campaign, 'investment');
-          const returnValue = getValueByPeriod(campaign, 'return');
-          const profitValue = getValueByPeriod(campaign, 'dailyProfit');
-          
-          const profitClass = profitValue >= 0 ? 'profit-positive' : 'profit-negative';
+        campaigns.forEach(campaign => {
+          const profitClass = campaign.totalProfit >= 0 ? 'profit-positive' : 'profit-negative';
           const roiClass = campaign.roi >= 0 ? 'profit-positive' : 'profit-negative';
-          
-          // Converter período para texto
-          const periodText = {
-            'daily': 'Diário',
-            'weekly': 'Semanal',
-            'monthly': 'Mensal',
-            'yearly': 'Anual'
-          }[campaign.period] || campaign.period;
+          const daysRunning = Math.ceil((new Date() - new Date(campaign.startDate)) / (1000 * 60 * 60 * 24));
           
           tableHTML += `
             <tr>
               <td class="font-medium">${campaign.name}</td>
-              <td>${periodText}</td>
-              <td class="text-right">${formatCurrency(investmentValue)}</td>
-              <td class="text-right">${formatCurrency(returnValue)}</td>
+              <td>${formatDate(campaign.startDate)}</td>
+              <td class="text-right">${formatCurrency(campaign.totalInvestment)}</td>
+              <td class="text-right">${formatCurrency(campaign.totalReturn)}</td>
               <td class="text-right ${profitClass} font-medium">
-                ${formatCurrency(profitValue)}
+                ${formatCurrency(campaign.totalProfit)}
               </td>
               <td class="text-right ${roiClass} font-medium">
                 ${formatPercentage(campaign.roi)}
               </td>
-              <td class="text-right">${formatCurrency(campaign.costPerClick)}</td>
+              <td>${daysRunning}</td>
+              <td>
+                <button onclick="openReturnsModal('${campaign.id}')" class="text-blue-500 hover:text-blue-700">
+                  <i class="fas fa-edit"></i> Retornos
+                </button>
+              </td>
             </tr>
           `;
         });
@@ -668,10 +877,10 @@
       } else {
         campaignsTableBody.innerHTML = `
           <tr>
-            <td colspan="7" class="text-center py-8 text-gray-500">
-              <i class="fas fa-chart-bar text-5xl mb-4 opacity-50"></i>
-              <p class="mt-2">Nenhuma campanha no sistema</p>
-              <p class="text-sm">Adicione campanhas usando o formulário para ver métricas detalhadas</p>
+            <td colspan="8" class="text-center py-8 text-gray-500">
+              <i class="fas fa-chart-line text-5xl mb-4 opacity-50"></i>
+              <p class="mt-2">Nenhuma campanha cadastrada</p>
+              <p class="text-sm">Crie sua primeira campanha para começar</p>
             </td>
           </tr>
         `;
@@ -680,10 +889,15 @@
     
     // Inicializar aplicação
     document.addEventListener('DOMContentLoaded', function() {
+      // Definir data de hoje como padrão
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('startDate').value = today;
+      document.getElementById('returnDate').value = today;
+      
       // Carregar campanhas salvas
       loadCampaigns();
       
-      // Adicionar evento ao botão
+      // Adicionar evento ao botão de adicionar campanha
       document.getElementById('addCampaignBtn').addEventListener('click', addCampaign);
       
       // Adicionar evento ao pressionar Enter no formulário
@@ -695,21 +909,32 @@
         });
       });
       
-      // Adicionar eventos aos botões de período
-      document.querySelectorAll('.period-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-          document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
-          this.classList.add('active');
-          currentPeriod = this.getAttribute('data-period');
-          updateDashboard();
+      // Adicionar evento ao botão de adicionar retorno diário
+      document.getElementById('addReturnBtn').addEventListener('click', addDailyReturn);
+      
+      // Adicionar evento ao botão de fechar modal
+      document.getElementById('closeModalBtn').addEventListener('click', closeReturnsModal);
+      
+      // Fechar modal ao clicar fora
+      document.getElementById('returnsModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+          closeReturnsModal();
+        }
+      });
+      
+      // Adicionar eventos aos tabs do modal
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+          switchTab(this.getAttribute('data-tab'));
         });
       });
       
-      // Adicionar evento ao filtro de campanha
-      document.getElementById('campaignFilter').addEventListener('change', function() {
-        selectedCampaign = this.value;
-        updateDashboard();
-      });
+      // Exemplo de uso explicado:
+      console.log("Exemplo de uso:");
+      console.log("1. Crie uma campanha com investimento inicial de R$ 100");
+      console.log("2. No dia seguinte, adicione um retorno de R$ 200");
+      console.log("3. Se houver investimento adicional de R$ 100, o total investido será R$ 200");
+      console.log("4. O lucro será R$ 200 (retorno) - R$ 200 (investido) = R$ 0");
     });
   </script>
 </body>
